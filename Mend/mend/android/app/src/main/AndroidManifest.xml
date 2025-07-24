@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internet permission for URL launching -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="mend"
         android:name="${applicationName}"
@@ -41,5 +44,23 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
+        <!-- Query for URL launching -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="http" />
+        </intent>
+
+        <!-- Query for YouTube app -->
+        <package android:name="com.google.android.youtube" />
+
+        <!-- Query for Spotify app -->
+        <package android:name="com.spotify.music" />
     </queries>
 </manifest>
