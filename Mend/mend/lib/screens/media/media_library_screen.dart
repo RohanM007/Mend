@@ -311,112 +311,81 @@ class _MediaLibraryScreenState extends State<MediaLibraryScreen> {
   }
 
   void _openContent(MediaContent content) async {
-    try {
-      String urlToOpen = content.url;
+  try {
+    String urlToOpen = content.url;
+    Uri? appUri;
 
-      // Handle different content types with appropriate URL schemes
-      switch (content.type) {
-        case MediaType.youtube:
-          // Extract video ID from YouTube URL
-          final videoId = _extractYouTubeVideoId(content.url);
-          if (videoId != null) {
-            final youtubeAppUrl = 'youtube://watch?v=$videoId';
-
-            try {
-              final appUri = Uri.parse(youtubeAppUrl);
-              if (await canLaunchUrl(appUri)) {
-                await launchUrl(appUri, mode: LaunchMode.externalApplication);
-                return;
-              }
-            } catch (e) {
-              // Fallback to web URL
-              urlToOpen = content.url;
-            }
-          }
-          break;
-
-        case MediaType.spotify:
-          // Extract Spotify ID from URL and try app first
-          final spotifyId = _extractSpotifyId(content.url);
-          if (spotifyId != null) {
-            String spotifyAppUrl;
-            if (content.url.contains('/playlist/')) {
-              spotifyAppUrl = 'spotify:playlist:$spotifyId';
-            } else if (content.url.contains('/artist/')) {
-              spotifyAppUrl = 'spotify:artist:$spotifyId';
-            } else if (content.url.contains('/album/')) {
-              spotifyAppUrl = 'spotify:album:$spotifyId';
-            } else {
-              spotifyAppUrl = 'spotify:track:$spotifyId';
-            }
-
-            try {
-              final appUri = Uri.parse(spotifyAppUrl);
-              if (await canLaunchUrl(appUri)) {
-                await launchUrl(appUri, mode: LaunchMode.externalApplication);
-                return;
-              }
-            } catch (e) {
-              // Fallback to web URL
-              urlToOpen = content.url;
-            }
-          }
-          break;
-
-        case MediaType.podcast:
-        case MediaType.audiobook:
-          // Use the original URL for podcasts and audiobooks
-          urlToOpen = content.url;
-          break;
-      }
-
-      // Launch the URL
-      final uri = Uri.parse(urlToOpen);
-
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Opening ${content.title} in ${content.typeDisplayName}',
-              ),
-              backgroundColor: AppConstants.successColor,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+    switch (content.type) {
+      case MediaType.youtube:
+        final videoId = _extractYouTubeVideoId(content.url);
+        if (videoId != null) {
+          appUri = Uri.parse('youtube://watch?v=$videoId');
         }
+        break;
+
+      case MediaType.spotify:
+        final spotifyId = _extractSpotifyId(content.url);
+        if (spotifyId != null) {
+          if (content.url.contains('/playlist/')) {
+            appUri = Uri.parse('spotify:playlist:$spotifyId');
+          } else if (content.url.contains('/artist/')) {
+            appUri = Uri.parse('spotify:artist:$spotifyId');
+          } else if (content.url.contains('/album/')) {
+            appUri = Uri.parse('spotify:album:$spotifyId');
+          } else {
+            appUri = Uri.parse('spotify:track:$spotifyId');
+          }
+        }
+        break;
+
+      case MediaType.podcast:
+      case MediaType.audiobook:
+        appUri = Uri.parse(content.url);
+        break;
+    }
+
+    // Attempt to open app-specific link
+    if (appUri != null && await canLaunchUrl(appUri)) {
+      await launchUrl(appUri, mode: LaunchMode.externalApplication);
+    } else {
+      // Fallback to web URL
+      final webUri = Uri.parse(content.url);
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Could not open ${content.typeDisplayName}. Please install the app or try again.',
-              ),
-              backgroundColor: AppConstants.warningColor,
-              action: SnackBarAction(
-                label: 'Copy Link',
-                onPressed: () {
-                  // Copy URL to clipboard as fallback
-                  // You could implement clipboard functionality here
-                },
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening content. Please try again.'),
-            backgroundColor: AppConstants.errorColor,
-          ),
-        );
+        throw 'Could not open content';
       }
     }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Opening ${content.title} in ${content.typeDisplayName}',
+          ),
+          backgroundColor: AppConstants.successColor,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not open ${content.typeDisplayName}. Please install the app or try again.',
+          ),
+          backgroundColor: AppConstants.warningColor,
+          action: SnackBarAction(
+            label: 'Copy Link',
+            onPressed: () {
+              // You can add clipboard copy here
+            },
+          ),
+        ),
+      );
+    }
   }
+}
 
   String? _extractYouTubeVideoId(String url) {
     // Handle different YouTube URL formats

@@ -14,11 +14,40 @@ class FirestoreService {
     if (_userId == null) throw Exception('User not authenticated');
 
     try {
-      await _firestore
-          .collection('users')
-          .doc(_userId)
-          .collection('moods')
-          .add(moodEntry.toMap());
+      // Check if there's already an entry for today
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
+
+      final existingEntries =
+          await _firestore
+              .collection('users')
+              .doc(_userId)
+              .collection('moods')
+              .where(
+                'date',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+              )
+              .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+              .get();
+
+      if (existingEntries.docs.isNotEmpty) {
+        // Update the existing entry instead of creating a new one
+        final docId = existingEntries.docs.first.id;
+        await _firestore
+            .collection('users')
+            .doc(_userId)
+            .collection('moods')
+            .doc(docId)
+            .update(moodEntry.toMap());
+      } else {
+        // Create a new entry
+        await _firestore
+            .collection('users')
+            .doc(_userId)
+            .collection('moods')
+            .add(moodEntry.toMap());
+      }
     } catch (e) {
       throw Exception('Failed to save mood entry: $e');
     }
@@ -33,27 +62,39 @@ class FirestoreService {
         .collection('moods')
         .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => MoodEntry.fromMap(doc.data(), doc.id))
-            .toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => MoodEntry.fromMap(doc.data(), doc.id))
+                  .toList(),
+        );
   }
 
   Future<List<MoodEntry>> getMoodEntriesForDateRange(
-      DateTime startDate, DateTime endDate) async {
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     if (_userId == null) return [];
 
     try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(_userId)
-          .collection('moods')
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-          .orderBy('date', descending: false)
-          .get();
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .doc(_userId)
+              .collection('moods')
+              .where(
+                'date',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+              )
+              .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+              .orderBy('date', descending: false)
+              .get();
 
       return snapshot.docs
-          .map((doc) => MoodEntry.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map(
+            (doc) =>
+                MoodEntry.fromMap(doc.data() as Map<String, dynamic>, doc.id),
+          )
           .toList();
     } catch (e) {
       throw Exception('Failed to get mood entries: $e');
@@ -95,9 +136,12 @@ class FirestoreService {
         .collection('journal')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => JournalEntry.fromMap(doc.data(), doc.id))
-            .toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => JournalEntry.fromMap(doc.data(), doc.id))
+                  .toList(),
+        );
   }
 
   Future<void> deleteJournalEntry(String entryId) async {
@@ -120,10 +164,9 @@ class FirestoreService {
     if (_userId == null) throw Exception('User not authenticated');
 
     try {
-      await _firestore
-          .collection('users')
-          .doc(_userId)
-          .update({'preferences': preferences});
+      await _firestore.collection('users').doc(_userId).update({
+        'preferences': preferences,
+      });
     } catch (e) {
       throw Exception('Failed to save preferences: $e');
     }
@@ -133,10 +176,8 @@ class FirestoreService {
     if (_userId == null) return null;
 
     try {
-      DocumentSnapshot doc = await _firestore
-          .collection('users')
-          .doc(_userId)
-          .get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(_userId).get();
 
       if (doc.exists) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -153,18 +194,19 @@ class FirestoreService {
     if (_userId == null) throw Exception('User not authenticated');
 
     try {
-      String dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      
+      String dateKey =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
       await _firestore
           .collection('users')
           .doc(_userId)
           .collection('affirmations')
           .doc(dateKey)
           .set({
-        'date': Timestamp.fromDate(date),
-        'viewed': true,
-        'viewedAt': FieldValue.serverTimestamp(),
-      });
+            'date': Timestamp.fromDate(date),
+            'viewed': true,
+            'viewedAt': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       throw Exception('Failed to mark affirmation as viewed: $e');
     }
@@ -175,16 +217,19 @@ class FirestoreService {
 
     try {
       DateTime today = DateTime.now();
-      String dateKey = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      
-      DocumentSnapshot doc = await _firestore
-          .collection('users')
-          .doc(_userId)
-          .collection('affirmations')
-          .doc(dateKey)
-          .get();
+      String dateKey =
+          '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
-      return doc.exists && (doc.data() as Map<String, dynamic>)['viewed'] == true;
+      DocumentSnapshot doc =
+          await _firestore
+              .collection('users')
+              .doc(_userId)
+              .collection('affirmations')
+              .doc(dateKey)
+              .get();
+
+      return doc.exists &&
+          (doc.data() as Map<String, dynamic>)['viewed'] == true;
     } catch (e) {
       return false;
     }

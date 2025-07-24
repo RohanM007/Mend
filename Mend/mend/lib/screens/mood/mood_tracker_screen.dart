@@ -22,13 +22,12 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
   MoodType? _selectedMood;
   int _intensity = 5;
   final _noteController = TextEditingController();
-  bool _hasLoggedToday = false;
+  bool _isSaving = false; // Add loading state to prevent multiple saves
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _checkTodaysMood();
   }
 
   @override
@@ -36,11 +35,6 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
     _tabController.dispose();
     _noteController.dispose();
     super.dispose();
-  }
-
-  void _checkTodaysMood() {
-    final moodProvider = Provider.of<MoodProvider>(context, listen: false);
-    _hasLoggedToday = moodProvider.hasLoggedToday();
   }
 
   Future<void> _saveMoodEntry() async {
@@ -53,6 +47,13 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
       );
       return;
     }
+
+    // Prevent multiple saves
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+    });
 
     final moodProvider = Provider.of<MoodProvider>(context, listen: false);
 
@@ -73,10 +74,10 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
 
       if (mounted) {
         setState(() {
-          _hasLoggedToday = true;
           _selectedMood = null;
           _intensity = 5;
           _noteController.clear();
+          _isSaving = false;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +89,10 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
       }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save mood: $e'),
@@ -130,156 +135,175 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
   }
 
   Widget _buildMoodLogTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.paddingLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Today's status
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              child: Column(
-                children: [
-                  Text(
-                    'Today - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppConstants.paddingSmall),
-                  if (_hasLoggedToday)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.check_circle,
-                          color: AppConstants.successColor,
-                        ),
-                        const SizedBox(width: AppConstants.paddingSmall),
-                        Text(
-                          'Mood logged for today',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppConstants.successColor),
-                        ),
-                      ],
-                    )
-                  else
-                    Text(
-                      'How are you feeling today?',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppConstants.textSecondary,
+    return Consumer<MoodProvider>(
+      builder: (context, moodProvider, child) {
+        final hasLoggedToday = moodProvider.hasLoggedToday();
+        final todaysMood = moodProvider.getTodaysMood();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Today's status
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Today - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: AppConstants.paddingLarge),
-
-          // Mood selector
-          if (!_hasLoggedToday) ...[
-            Text(
-              'Select Your Mood',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: AppConstants.paddingMedium),
-
-            MoodSelector(
-              selectedMood: _selectedMood,
-              onMoodSelected: (mood) {
-                setState(() {
-                  _selectedMood = mood;
-                });
-              },
-            ),
-
-            const SizedBox(height: AppConstants.paddingLarge),
-
-            // Intensity slider
-            if (_selectedMood != null) ...[
-              Text(
-                'Intensity Level: $_intensity/10',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: AppConstants.paddingSmall),
-
-              Slider(
-                value: _intensity.toDouble(),
-                min: 1,
-                max: 10,
-                divisions: 9,
-                label: _intensity.toString(),
-                onChanged: (value) {
-                  setState(() {
-                    _intensity = value.round();
-                  });
-                },
-              ),
-
-              const SizedBox(height: AppConstants.paddingLarge),
-
-              // Note field
-              CustomTextField(
-                controller: _noteController,
-                labelText: 'Add a note (optional)',
-                hintText: 'What\'s on your mind?',
-                maxLines: 3,
-                maxLength: AppConstants.maxMoodNoteLength,
-              ),
-
-              const SizedBox(height: AppConstants.paddingLarge),
-
-              // Save button
-              CustomButton(
-                text: 'Log Mood',
-                onPressed: _saveMoodEntry,
-                icon: Icons.save,
-              ),
-            ],
-          ] else ...[
-            // Already logged today message
-            Card(
-              color: AppConstants.successColor.withValues(alpha: 0.1),
-              child: Padding(
-                padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.sentiment_satisfied_alt,
-                      size: 60,
-                      color: AppConstants.successColor,
-                    ),
-                    const SizedBox(height: AppConstants.paddingMedium),
-                    Text(
-                      'Great job!',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(color: AppConstants.successColor),
-                    ),
-                    const SizedBox(height: AppConstants.paddingSmall),
-                    Text(
-                      'You\'ve already logged your mood for today. Check back tomorrow!',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppConstants.paddingMedium),
-                    CustomButton(
-                      text: 'View History',
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MoodHistoryScreen(),
-                          ),
-                        );
-                      },
-                      isOutlined: true,
-                    ),
-                  ],
+                      const SizedBox(height: AppConstants.paddingSmall),
+                      if (hasLoggedToday && todaysMood != null)
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: AppConstants.successColor,
+                                ),
+                                const SizedBox(
+                                  width: AppConstants.paddingSmall,
+                                ),
+                                Text(
+                                  'Mood logged for today',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: AppConstants.successColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppConstants.paddingSmall),
+                            // Show today's mood
+                            MoodDisplay(entry: todaysMood, showNote: false),
+                          ],
+                        )
+                      else
+                        Text(
+                          'How are you feeling today?',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: AppConstants.textSecondary),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ],
-      ),
+
+              const SizedBox(height: AppConstants.paddingLarge),
+
+              // Mood selector
+              if (!hasLoggedToday) ...[
+                Text(
+                  'Select Your Mood',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: AppConstants.paddingMedium),
+
+                MoodSelector(
+                  selectedMood: _selectedMood,
+                  onMoodSelected: (mood) {
+                    setState(() {
+                      _selectedMood = mood;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: AppConstants.paddingLarge),
+
+                // Intensity slider
+                if (_selectedMood != null) ...[
+                  Text(
+                    'Intensity Level: $_intensity/10',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppConstants.paddingSmall),
+
+                  Slider(
+                    value: _intensity.toDouble(),
+                    min: 1,
+                    max: 10,
+                    divisions: 9,
+                    label: _intensity.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        _intensity = value.round();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: AppConstants.paddingLarge),
+
+                  // Note field
+                  CustomTextField(
+                    controller: _noteController,
+                    labelText: 'Add a note (optional)',
+                    hintText: 'What\'s on your mind?',
+                    maxLines: 3,
+                    maxLength: AppConstants.maxMoodNoteLength,
+                  ),
+
+                  const SizedBox(height: AppConstants.paddingLarge),
+
+                  // Save button
+                  CustomButton(
+                    text: 'Log Mood',
+                    onPressed: _isSaving ? null : _saveMoodEntry,
+                    icon: Icons.save,
+                    isLoading: _isSaving,
+                  ),
+                ],
+              ] else ...[
+                // Already logged today message
+                Card(
+                  color: AppConstants.successColor.withValues(alpha: 0.1),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.sentiment_satisfied_alt,
+                          size: 60,
+                          color: AppConstants.successColor,
+                        ),
+                        const SizedBox(height: AppConstants.paddingMedium),
+                        Text(
+                          'Great job!',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: AppConstants.successColor),
+                        ),
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        Text(
+                          'You\'ve already logged your mood for today. Check back tomorrow!',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppConstants.paddingMedium),
+                        CustomButton(
+                          text: 'View History',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const MoodHistoryScreen(),
+                              ),
+                            );
+                          },
+                          isOutlined: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
