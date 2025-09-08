@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // App Information
-  static const String appName = 'Mend';
+  static const String appName = 'M.E.N.D';
   static const String appVersion = '1.0.0';
   static const String appDescription =
-      'Your personal mental wellness companion';
+      'M.E.N.D (Mental Empowerment Nurturing Development) – Your personal mental wellness companion';
 
   // Colors - Blue, Green, Purple Theme
   static const Color primaryColor = Color(0xFF4A90E2); // Calming Blue
