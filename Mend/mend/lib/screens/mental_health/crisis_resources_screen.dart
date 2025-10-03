@@ -199,60 +199,32 @@ class CrisisResourcesScreen extends StatelessWidget {
   }
 
   Widget _buildProfessionalResourceCard(
-    BuildContext context,
-    ProfessionalResource resource,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
-      child: ExpansionTile(
-        title: Text(
-          resource.type,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(resource.description),
+  BuildContext context,
+  ProfessionalResource resource,
+) {
+  return Card(
+    margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
+    child: Padding(
+      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.paddingMedium),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'How to find:',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: AppConstants.paddingSmall),
-                Text(resource.howToFind),
-                const SizedBox(height: AppConstants.paddingMedium),
-                Text(
-                  'When to seek:',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: AppConstants.paddingSmall),
-                ...resource.whenToSeek.map(
-                  (reason) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('• '),
-                        Expanded(child: Text(reason)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+          Text(
+            resource.type,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
+          ),
+          const SizedBox(height: AppConstants.paddingSmall),
+          Text(
+            resource.description,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSafetyPlanning(BuildContext context) {
     return Column(
