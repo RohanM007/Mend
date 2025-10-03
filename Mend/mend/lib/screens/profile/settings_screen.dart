@@ -24,9 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppConstants.paddingMedium),
         children: [
-          // Appearance Section
-          _buildAppearanceSection(context),
-
+         
           const SizedBox(height: AppConstants.paddingLarge),
 
           // Data Section
@@ -41,83 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAppearanceSection(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Appearance',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: AppConstants.paddingMedium),
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return Column(
-                  children: [
-                    _buildThemeOption(
-                      context,
-                      'Light Theme',
-                      'Bright and clean interface',
-                      Icons.light_mode,
-                      ThemeMode.light,
-                      themeProvider.themeMode,
-                      (value) => themeProvider.setThemeMode(value),
-                    ),
-                    _buildThemeOption(
-                      context,
-                      'Dark Theme',
-                      'Easy on the eyes',
-                      Icons.dark_mode,
-                      ThemeMode.dark,
-                      themeProvider.themeMode,
-                      (value) => themeProvider.setThemeMode(value),
-                    ),
-                    _buildThemeOption(
-                      context,
-                      'System Default',
-                      'Follow device settings',
-                      Icons.settings_system_daydream,
-                      ThemeMode.system,
-                      themeProvider.themeMode,
-                      (value) => themeProvider.setThemeMode(value),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildThemeOption(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData icon,
-    ThemeMode value,
-    ThemeMode groupValue,
-    Function(ThemeMode) onChanged,
-  ) {
-    return RadioListTile<ThemeMode>(
-      title: Text(title),
-      subtitle: Text(subtitle),
-      secondary: Icon(icon, color: AppConstants.primaryColor),
-      value: value,
-      groupValue: groupValue,
-      onChanged: (ThemeMode? newValue) {
-        if (newValue != null) {
-          onChanged(newValue);
-        }
-      },
-    );
-  }
 
   Widget _buildDataSection(BuildContext context) {
     return Card(
