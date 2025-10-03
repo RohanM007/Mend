@@ -16,8 +16,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
@@ -25,31 +24,22 @@ class _SplashScreenState extends State<SplashScreen>
     _setupAnimations();
     _navigateAfterDelay();
 
-    // Safety timeout - navigate after 10 seconds regardless
+    // Safety timeout
     Future.delayed(const Duration(seconds: 10), () {
-      if (mounted) {
-        _navigateToNextScreen();
-      }
+      if (mounted) _navigateToNextScreen();
     });
   }
 
   void _setupAnimations() {
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
+        curve: Curves.easeOut,
       ),
     );
 
@@ -57,29 +47,25 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateAfterDelay() {
-    // Wait for minimum splash time AND auth initialization
     Future.delayed(const Duration(milliseconds: 3000), () async {
-      if (mounted) {
-        await _waitForAuthInitialization();
+      if (!mounted) return;
 
-        // Check if notifications need refreshing (with error handling)
-        try {
-          if (await NotificationService.shouldRefreshNotifications()) {
-            await NotificationService.scheduleAllNotifications();
-          }
-        } catch (e) {
-          // Continue even if notification setup fails
-          debugPrint('Notification setup failed: $e');
+      await _waitForAuthInitialization();
+
+      try {
+        if (await NotificationService.shouldRefreshNotifications()) {
+          await NotificationService.scheduleAllNotifications();
         }
-        _navigateToNextScreen();
+      } catch (e) {
+        debugPrint('Notification setup failed: $e');
       }
+
+      _navigateToNextScreen();
     });
   }
 
   Future<void> _waitForAuthInitialization() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    // Wait until auth is no longer uninitialized (max 5 seconds)
     int attempts = 0;
     while (authProvider.status == AuthStatus.uninitialized && attempts < 50) {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -89,25 +75,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNextScreen() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    Widget nextScreen;
-    if (authProvider.status == AuthStatus.authenticated) {
-      nextScreen = const MainNavigationScreen();
-      debugPrint('User is authenticated, navigating to main screen');
-    } else {
-      nextScreen = const LoginScreen();
-      debugPrint('User is not authenticated, navigating to login screen');
-    }
+    final nextScreen = authProvider.status == AuthStatus.authenticated
+        ? const MainNavigationScreen()
+        : const LoginScreen();
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
+        MaterialPageRoute(builder: (_) => nextScreen),
       );
     }
   }
@@ -121,98 +95,105 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // App Logo
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusXLarge,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusXLarge,
-                        ),
-                        child: Image.asset(
-                          'assets/images/logo.jpg',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Fallback to icon if logo fails to load
-                            return const Icon(
-                              Icons.healing,
-                              size: 60,
-                              color: AppConstants.primaryColor,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: AppConstants.paddingLarge),
-
-                    // App Name
-                    Text(
-                      AppConstants.appName,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.displayMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: AppConstants.paddingSmall),
-
-                    // App Description
-                    Text(
-                      AppConstants.appDescription,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: AppConstants.paddingXLarge),
-
-                    // Loading indicator
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withValues(alpha: 0.8),
-                        ),
-                        strokeWidth: 3,
-                      ),
-                    ),
-                  ],
-                ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppConstants.gradientStart.withOpacity(0.9),
+              AppConstants.gradientEnd.withOpacity(0.7),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _opacityAnimation,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingLarge,
               ),
-            );
-          },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo.jpg',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.healing,
+                            size: 50,
+                            color: AppConstants.primaryColor,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConstants.paddingLarge),
+
+                  // App Name
+                  Text(
+                    AppConstants.appName,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppConstants.paddingSmall),
+
+                  // App Description
+                  Text(
+                    AppConstants.appDescription,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppConstants.paddingXLarge * 1.5),
+
+                  // Subtle loading indicator
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withOpacity(0.8),
+                      ),
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
