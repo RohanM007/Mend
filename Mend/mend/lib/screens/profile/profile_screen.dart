@@ -47,9 +47,7 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: AppConstants.paddingLarge),
 
-                // Settings & Preferences
-                _buildSettingsSection(context),
-
+            
                 const SizedBox(height: AppConstants.paddingLarge),
 
                 // Account Section
@@ -212,13 +210,7 @@ class ProfileScreen extends StatelessWidget {
                           Icons.book,
                           AppConstants.accentColor,
                         ),
-                        _buildStatItem(
-                          context,
-                          'Meditations',
-                          meditationProvider.getTotalSessions().toString(),
-                          Icons.self_improvement,
-                          AppConstants.primaryColor,
-                        ),
+                       
                       ],
                     ),
                   ],
@@ -270,38 +262,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsSection(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Settings & Preferences',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: AppConstants.paddingMedium),
-
-            // Theme Settings
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return _buildActionTile(
-                  context,
-                  'Theme',
-                  _getThemeDescription(themeProvider.themeMode),
-                  _getThemeIcon(themeProvider.themeMode),
-                  () => _showThemeDialog(context, themeProvider),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+ 
 
   Widget _buildAccountSection(BuildContext context, AuthProvider authProvider) {
     return Card(
@@ -425,79 +386,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _getThemeDescription(ThemeMode themeMode) {
-    switch (themeMode) {
-      case ThemeMode.light:
-        return 'Light mode';
-      case ThemeMode.dark:
-        return 'Dark mode';
-      case ThemeMode.system:
-        return 'Follow system';
-    }
-  }
-
-  IconData _getThemeIcon(ThemeMode themeMode) {
-    switch (themeMode) {
-      case ThemeMode.light:
-        return Icons.light_mode;
-      case ThemeMode.dark:
-        return Icons.dark_mode;
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-    }
-  }
-
-  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Choose Theme'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<ThemeMode>(
-                  title: const Text('Light'),
-                  subtitle: const Text('Bright and clean interface'),
-                  value: ThemeMode.light,
-                  groupValue: themeProvider.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      themeProvider.setThemeMode(value);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                RadioListTile<ThemeMode>(
-                  title: const Text('Dark'),
-                  subtitle: const Text('Easy on the eyes'),
-                  value: ThemeMode.dark,
-                  groupValue: themeProvider.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      themeProvider.setThemeMode(value);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                RadioListTile<ThemeMode>(
-                  title: const Text('System'),
-                  subtitle: const Text('Follow device settings'),
-                  value: ThemeMode.system,
-                  groupValue: themeProvider.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      themeProvider.setThemeMode(value);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
   int _calculateDaysActive(
     List moodEntries,
     List journalEntries,
@@ -521,17 +409,7 @@ class ProfileScreen extends StatelessWidget {
       activeDates.add(date);
     }
 
-    // Add dates from meditation sessions (only completed ones)
-    for (final session in meditationSessions) {
-      if (session.completed) {
-        final date = DateTime(
-          session.startTime.year,
-          session.startTime.month,
-          session.startTime.day,
-        );
-        activeDates.add(date);
-      }
-    }
+    
 
     return activeDates.length;
   }
