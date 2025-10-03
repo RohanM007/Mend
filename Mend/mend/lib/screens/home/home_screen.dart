@@ -13,7 +13,6 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({super.key, this.onNavigateToTab});
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
@@ -24,35 +23,12 @@ class HomeScreen extends StatelessWidget {
             floating: false,
             pinned: true,
             automaticallyImplyLeading: false,
-            leading: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/logo.jpg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.healing, color: Colors.white);
-                  },
-                ),
-              ),
-            ),
-            actions: [
-              Consumer<ThemeProvider>(
-                builder: (context, themeProvider, child) {
-                  return IconButton(
-                    icon: Icon(
-                      themeProvider.themeMode == ThemeMode.dark
-                          ? Icons.light_mode
-                          : themeProvider.themeMode == ThemeMode.light
-                          ? Icons.dark_mode
-                          : Icons.brightness_auto,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => themeProvider.toggleTheme(),
-                    tooltip: 'Toggle theme',
-                  );
-                },
+            // Remove 'leading' —adding the logo inside flexibleSpace
+            actions: const [
+              // Optional: Keep a static light mode icon or remove entirely
+              Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: Icon(Icons.light_mode, color: Colors.white),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -69,26 +45,59 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppConstants.paddingLarge,
+                      AppConstants.paddingLarge,
+                      AppConstants.paddingLarge,
+                      AppConstants.paddingMedium,
+                    ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Consumer<AuthProvider>(
-                          builder: (context, authProvider, child) {
-                            final user = authProvider.user;
-                            return Text(
-                              user != null
-                                  ? 'Welcome back, ${_getFirstName(user.displayName ?? 'Friend')}!'
-                                  : 'Welcome to ${AppConstants.appName}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                        // 🔑 KEY FIX: Logo + Text in a Row with spacing
+                        Row(
+                          children: [
+                            // Logo
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: SizedBox.fromSize(
+                                size: const Size(40, 40),
+                                child: Image.asset(
+                                  'assets/images/logo.jpg',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.healing,
+                                      color: Colors.white,
+                                    );
+                                  },
+                                ),
                               ),
-                            );
-                          },
+                            ),
+                            const SizedBox(width: 12), // 👈 CRITICAL SPACING
+                            // Welcome text
+                            Expanded(
+                              child: Consumer<AuthProvider>(
+                                builder: (context, authProvider, child) {
+                                  final user = authProvider.user;
+                                  return Text(
+                                    user != null
+                                        ? 'Welcome back, ${_getFirstName(user.displayName ?? 'Friend')}!'
+                                        : 'Welcome to ${AppConstants.appName}',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -133,6 +142,25 @@ class HomeScreen extends StatelessWidget {
 
                   // Quick Actions
                   _buildQuickActions(context),
+
+                  // 👇 Disclaimer - Added here
+                  const SizedBox(height: AppConstants.paddingLarge),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.paddingMedium,
+                    ),
+                    child: Text(
+                      'Disclaimer: The content provided in this app is for informational and educational purposes only. '
+                      'It is not intended as, and must not be construed as, professional medical, psychological, or therapeutic advice. '
+                      'Always seek the guidance of a qualified mental health professional for any questions or concerns regarding your mental well-being. ',
+
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.justify,
+                    ),
+                  ),
                 ],
               ),
             ),
