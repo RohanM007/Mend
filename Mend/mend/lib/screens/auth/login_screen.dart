@@ -55,179 +55,214 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.paddingLarge),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 40), // Extra top space
-
-                  // App Logo
-                  ClipOval(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      color: AppConstants.primaryColor.withValues(alpha: 0.1),
-                      child: Image.asset(
-                        'assets/images/logo.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.healing,
-                            size: 40,
-                            color: AppConstants.primaryColor,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: AppConstants.paddingLarge),
-
-                  // Welcome Title
-                  Text(
-                    'Welcome back',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppConstants.primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: AppConstants.paddingSmall),
-
-                  // Subtitle
-                  Text(
-                    'Sign in to continue your wellness journey',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppConstants.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: AppConstants.paddingXLarge * 1.2),
-
-                  // Email field
-                  CustomTextField(
-                    controller: _emailController,
-                    labelText: 'Email',
-                    hintText: 'you@example.com',
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: AppConstants.paddingMedium),
-
-                  // Password field
-                  CustomTextField(
-                    controller: _passwordController,
-                    labelText: 'Password',
-                    hintText: '••••••••',
-                    obscureText: !_isPasswordVisible,
-                    prefixIcon: Icons.lock_outlined,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                        color: AppConstants.textSecondary,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ForgotPasswordScreen(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppConstants.gradientStart.withValues(alpha: 0.9),
+              AppConstants.gradientEnd.withValues(alpha: 0.7),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 60), // Extra top space
+                    // App Logo - Larger and more visible
+                    Center(
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 25,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/logo.jpg',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.healing,
+                                size: 60,
+                                color: AppConstants.primaryColor,
+                              );
+                            },
                           ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Forgot password?',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppConstants.primaryColor,
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: AppConstants.paddingLarge),
+                    const SizedBox(height: AppConstants.paddingLarge),
 
-                  // Login button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return CustomButton(
-                        text: 'Sign In',
-                        onPressed: authProvider.status == AuthStatus.authenticating
-                            ? null
-                            : _handleLogin,
-                        isLoading: authProvider.status == AuthStatus.authenticating,
-                      );
-                    },
-                  ),
+                    // Welcome Title
+                    Text(
+                      'Welcome back',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
 
-                  const SizedBox(height: AppConstants.paddingMedium),
+                    const SizedBox(height: AppConstants.paddingSmall),
 
-                  // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    // Subtitle
+                    Text(
+                      'Sign in to continue your wellness journey',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: AppConstants.paddingXLarge * 1.2),
+
+                    // Email field
+                    CustomTextField(
+                      controller: _emailController,
+                      labelText: 'Email',
+                      hintText: 'you@example.com',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Icons.email_outlined,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppConstants.paddingMedium),
+
+                    // Password field
+                    CustomTextField(
+                      controller: _passwordController,
+                      labelText: 'Password',
+                      hintText: '••••••••',
+                      obscureText: !_isPasswordVisible,
+                      prefixIcon: Icons.lock_outlined,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: AppConstants.textSecondary,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
                       ),
-                      TextButton(
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const RegisterScreen(),
+                              builder: (_) => const ForgotPasswordScreen(),
                             ),
                           );
                         },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         child: Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: AppConstants.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          'Forgot password?',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppConstants.primaryColor),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+
+                    const SizedBox(height: AppConstants.paddingLarge),
+
+                    // Login button
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        return CustomButton(
+                          text: 'Sign In',
+                          onPressed:
+                              authProvider.status == AuthStatus.authenticating
+                                  ? null
+                                  : _handleLogin,
+                          isLoading:
+                              authProvider.status == AuthStatus.authenticating,
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: AppConstants.paddingMedium),
+
+                    // Register link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account? ",
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppConstants.textSecondary),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: AppConstants.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
