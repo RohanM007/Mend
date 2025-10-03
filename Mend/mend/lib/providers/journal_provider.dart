@@ -1,33 +1,74 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/journal_entry.dart';
 import '../services/firestore_service.dart';
 
 class JournalProvider with ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
-  
+
   List<JournalEntry> _journalEntries = [];
   bool _isLoading = false;
   String? _errorMessage;
+  StreamSubscription<List<JournalEntry>>? _journalEntriesSubscription;
+  String? _currentUserId;
 
   List<JournalEntry> get journalEntries => _journalEntries;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   JournalProvider() {
-    _loadJournalEntries();
+    // Don't load data immediately - wait for user authentication
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      final newUserId = user?.uid;
+
+      if (newUserId != _currentUserId) {
+        // User changed - clear old data and load new data
+        _clearData();
+        _currentUserId = newUserId;
+
+        if (newUserId != null) {
+          _loadJournalEntries();
+        }
+      }
+    });
+  }
+
+  void _clearData() {
+    _journalEntriesSubscription?.cancel();
+    _journalEntriesSubscription = null;
+    _journalEntries.clear();
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   Future<void> _loadJournalEntries() async {
+    if (_currentUserId == null) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _firestoreService.getJournalEntries().listen((entries) {
-        _journalEntries = entries;
-        _isLoading = false;
-        notifyListeners();
-      });
+      _journalEntriesSubscription = _firestoreService
+          .getJournalEntries()
+          .listen(
+            (entries) {
+              _journalEntries = entries;
+              _isLoading = false;
+              notifyListeners();
+            },
+            onError: (error) {
+              _errorMessage = error.toString();
+              _isLoading = false;
+              notifyListeners();
+            },
+          );
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
@@ -61,9 +102,13 @@ class JournalProvider with ChangeNotifier {
     return _journalEntries.where((entry) => entry.tags.contains(tag)).toList();
   }
 
-  List<JournalEntry> getEntriesForDateRange(DateTime startDate, DateTime endDate) {
+  List<JournalEntry> getEntriesForDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
     return _journalEntries.where((entry) {
-      return entry.createdAt.isAfter(startDate) && entry.createdAt.isBefore(endDate);
+      return entry.createdAt.isAfter(startDate) &&
+          entry.createdAt.isBefore(endDate);
     }).toList();
   }
 
@@ -108,7 +153,7 @@ class JournalProvider with ChangeNotifier {
 
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
-    
+
     int streak = 0;
     DateTime checkDate = todayDate;
 
@@ -160,9 +205,25 @@ class JournalProvider with ChangeNotifier {
   // Get mood-related entries (if they contain mood keywords)
   List<JournalEntry> getMoodRelatedEntries() {
     const moodKeywords = [
-      'happy', 'sad', 'angry', 'excited', 'anxious', 'calm', 'stressed',
-      'depressed', 'joyful', 'worried', 'peaceful', 'frustrated', 'content',
-      'overwhelmed', 'grateful', 'hopeful', 'lonely', 'confident', 'scared'
+      'happy',
+      'sad',
+      'angry',
+      'excited',
+      'anxious',
+      'calm',
+      'stressed',
+      'depressed',
+      'joyful',
+      'worried',
+      'peaceful',
+      'frustrated',
+      'content',
+      'overwhelmed',
+      'grateful',
+      'hopeful',
+      'lonely',
+      'confident',
+      'scared',
     ];
 
     return _journalEntries.where((entry) {
@@ -174,6 +235,12 @@ class JournalProvider with ChangeNotifier {
   // Get entries with prompts
   List<JournalEntry> getPromptEntries() {
     return _journalEntries.where((entry) => entry.prompt != null).toList();
+  }
+
+  @override
+  void dispose() {
+    _journalEntriesSubscription?.cancel();
+    super.dispose();
   }
 
   void clearError() {
