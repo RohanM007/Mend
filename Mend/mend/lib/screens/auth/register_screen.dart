@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _hasParentalConsent = false; // 👈 New field
 
   @override
   void dispose() {
@@ -32,6 +33,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    // 👇 Check parental consent first
+    if (!_hasParentalConsent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please confirm age and parental consent to continue.'),
+          backgroundColor: AppConstants.errorColor,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
@@ -186,7 +198,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                
+
+                // 👇 Parental Consent Checkbox
+                const SizedBox(height: AppConstants.paddingLarge),
+                Container(
+                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: AppConstants.primaryColor.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    border: Border.all(
+                      color: AppConstants.primaryColor.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _hasParentalConsent,
+                        onChanged: (value) {
+                          setState(() {
+                            _hasParentalConsent = value ?? false;
+                          });
+                        },
+                        activeColor: AppConstants.primaryColor,
+                      ),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            style: Theme.of(context).textTheme.bodySmall,
+                            children: [
+                              TextSpan(
+                                text: 'I confirm I am at least 13 years old. ',
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              TextSpan(
+                                text: 'If I am between 13 and 17, I have permission from my parent or guardian to use this app.',
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: AppConstants.paddingLarge),
                 
                 // Register button
