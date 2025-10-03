@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/mood_entry.dart';
 import '../services/firestore_service.dart';
 
 class MoodProvider with ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
-  
+
   List<MoodEntry> _moodEntries = [];
   bool _isLoading = false;
   String? _errorMessage;
+  StreamSubscription<List<MoodEntry>>? _moodEntriesSubscription;
+  String? _currentUserId;
 
   List<MoodEntry> get moodEntries => _moodEntries;
   bool get isLoading => _isLoading;
@@ -27,20 +31,55 @@ class MoodProvider with ChangeNotifier {
   }
 
   MoodProvider() {
-    _loadMoodEntries();
+    // Don't load data immediately - wait for user authentication
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      final newUserId = user?.uid;
+
+      if (newUserId != _currentUserId) {
+        // User changed - clear old data and load new data
+        _clearData();
+        _currentUserId = newUserId;
+
+        if (newUserId != null) {
+          _loadMoodEntries();
+        }
+      }
+    });
+  }
+
+  void _clearData() {
+    _moodEntriesSubscription?.cancel();
+    _moodEntriesSubscription = null;
+    _moodEntries.clear();
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   Future<void> _loadMoodEntries() async {
+    if (_currentUserId == null) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _firestoreService.getMoodEntries().listen((entries) {
-        _moodEntries = entries;
-        _isLoading = false;
-        notifyListeners();
-      });
+      _moodEntriesSubscription = _firestoreService.getMoodEntries().listen(
+        (entries) {
+          _moodEntries = entries;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onError: (error) {
+          _errorMessage = error.toString();
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
@@ -61,28 +100,37 @@ class MoodProvider with ChangeNotifier {
 
   bool hasLoggedToday() {
     final today = DateTime.now();
-    return _moodEntries.any((entry) =>
-        entry.date.year == today.year &&
-        entry.date.month == today.month &&
-        entry.date.day == today.day);
+    return _moodEntries.any(
+      (entry) =>
+          entry.date.year == today.year &&
+          entry.date.month == today.month &&
+          entry.date.day == today.day,
+    );
   }
 
   MoodEntry? getTodaysMood() {
     final today = DateTime.now();
     try {
-      return _moodEntries.firstWhere((entry) =>
-          entry.date.year == today.year &&
-          entry.date.month == today.month &&
-          entry.date.day == today.day);
+      return _moodEntries.firstWhere(
+        (entry) =>
+            entry.date.year == today.year &&
+            entry.date.month == today.month &&
+            entry.date.day == today.day,
+      );
     } catch (e) {
       return null;
     }
   }
 
   Future<List<MoodEntry>> getMoodEntriesForDateRange(
-      DateTime startDate, DateTime endDate) async {
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     try {
-      return await _firestoreService.getMoodEntriesForDateRange(startDate, endDate);
+      return await _firestoreService.getMoodEntriesForDateRange(
+        startDate,
+        endDate,
+      );
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -104,9 +152,11 @@ class MoodProvider with ChangeNotifier {
 
   double getAverageIntensity() {
     if (_moodEntries.isEmpty) return 0;
-    
+
     final totalIntensity = _moodEntries.fold<int>(
-      0, (sum, entry) => sum + entry.intensity);
+      0,
+      (sum, entry) => sum + entry.intensity,
+    );
     return totalIntensity / _moodEntries.length;
   }
 
@@ -121,14 +171,16 @@ class MoodProvider with ChangeNotifier {
     final recentEntries = _moodEntries.take(7).toList();
     if (recentEntries.length < 2) return MoodTrend.stable;
 
-    final recentAverage = recentEntries.fold<int>(
-      0, (sum, entry) => sum + entry.intensity) / recentEntries.length;
+    final recentAverage =
+        recentEntries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
+        recentEntries.length;
 
     final olderEntries = _moodEntries.skip(7).take(7).toList();
     if (olderEntries.isEmpty) return MoodTrend.stable;
 
-    final olderAverage = olderEntries.fold<int>(
-      0, (sum, entry) => sum + entry.intensity) / olderEntries.length;
+    final olderAverage =
+        olderEntries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
+        olderEntries.length;
 
     const threshold = 0.5;
     if (recentAverage > olderAverage + threshold) {
@@ -138,6 +190,12 @@ class MoodProvider with ChangeNotifier {
     } else {
       return MoodTrend.stable;
     }
+  }
+
+  @override
+  void dispose() {
+    _moodEntriesSubscription?.cancel();
+    super.dispose();
   }
 
   void clearError() {
@@ -150,11 +208,7 @@ class MoodProvider with ChangeNotifier {
   }
 }
 
-enum MoodTrend {
-  improving,
-  declining,
-  stable,
-}
+enum MoodTrend { improving, declining, stable }
 
 extension MoodTrendExtension on MoodTrend {
   String get displayName {
