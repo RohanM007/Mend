@@ -101,10 +101,10 @@ class ThemeProvider with ChangeNotifier {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppConstants.darkSurfaceColor,
-        foregroundColor: AppConstants.textDark,
+        foregroundColor: AppConstants.darkTextPrimary,
         elevation: 0,
         titleTextStyle: TextStyle(
-          color: AppConstants.textDark,
+          color: AppConstants.darkTextPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // App Information
-  static const String appName = 'M.E.N.D';
+  static const String appName = 'MEND';
   static const String appVersion = '1.0.0';
   static const String appDescription =
-      'M.E.N.D (Mental Empowerment Nurturing Development) – Your personal mental wellness companion';
+      'Mental Empowerment Nurturing Development - Your personal mental wellness companion';
 
   // Colors - Blue, Green, Purple Theme
   static const Color primaryColor = Color(0xFF4A90E2); // Calming Blue
@@ -35,7 +35,12 @@ class AppConstants {
   static const Color textPrimary = Color(0xFF2C3E50);
   static const Color textSecondary = Color(0xFF7F8C8D);
   static const Color textLight = Color(0xFFBDC3C7);
-  static const Color textDark = Color(0xFFFFFFFF);
+  
+  //dark theme text which is more contrast friendly 
+  static const Color darkTextPrimary   = Color(0xFFEFEFEF); // Main body text
+  static const Color darkTextSecondary = Color(0xFFB0B8C4); // Hints, captions
+  static const Color darkTextDisabled  = Color(0xFF6B7280); // Disabled, subtle
+  
 
   // Additional theme colors
   static const Color lightBlue = Color(0xFFE3F2FD);
