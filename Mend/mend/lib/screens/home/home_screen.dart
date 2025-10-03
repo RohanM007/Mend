@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../data/wellness_data.dart';
 import '../../widgets/affirmation_card.dart';
