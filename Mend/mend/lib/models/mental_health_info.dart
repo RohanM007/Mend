@@ -289,14 +289,12 @@ class CrisisResource {
 class ProfessionalResource {
   final String type;
   final String description;
-  final String howToFind;
-  final List<String> whenToSeek;
+  
 
   const ProfessionalResource({
     required this.type,
     required this.description,
-    required this.howToFind,
-    required this.whenToSeek,
+   
   });
 
   static const List<ProfessionalResource> professionalResources = [
@@ -304,66 +302,44 @@ class ProfessionalResource {
       type: 'Psychiatrist',
       description:
           'Medical doctor who specializes in mental health and can prescribe medication.',
-      howToFind:
-          'Get a referral from your GP, contact medical aid, or visit SADAG website for psychiatrist directory.',
-      whenToSeek: [
-        'You think you might need medication',
-        'You have severe symptoms',
-        'Other treatments haven\'t helped',
-        'You have thoughts of self-harm',
-      ],
+      
     ),
     ProfessionalResource(
       type: 'Clinical Psychologist',
       description:
           'Mental health professional who provides therapy and psychological assessments.',
-      howToFind:
-          'Contact HPCSA (Health Professions Council of SA), check medical aid networks, or visit SADAG directory.',
-      whenToSeek: [
-        'You want to talk through problems',
-        'You need coping strategies',
-        'You want to understand your thoughts and behaviors',
-        'You need psychological testing',
-      ],
+      
     ),
     ProfessionalResource(
       type: 'Counselling Psychologist',
       description:
           'Mental health professional specializing in counseling and therapy services.',
-      howToFind:
-          'Check HPCSA register, contact medical aid, or visit community health centers.',
-      whenToSeek: [
-        'You need someone to talk to',
-        'You\'re going through a difficult time',
-        'You want to improve relationships',
-        'You need support with life changes',
-      ],
+     
     ),
     ProfessionalResource(
       type: 'General Practitioner (GP)',
       description:
           'Your family doctor who can provide initial mental health screening and referrals.',
-      howToFind:
-          'Contact your current GP, find one through medical aid, or visit local clinics.',
-      whenToSeek: [
-        'You\'re not sure where to start',
-        'You have physical symptoms related to mental health',
-        'You need a referral to a specialist',
-        'You want to discuss medication options',
-      ],
+     
     ),
     ProfessionalResource(
       type: 'Social Worker',
       description:
           'Professional who provides counseling and connects you with community resources.',
-      howToFind:
-          'Contact SACSSP (South African Council for Social Service Professions) or local social services.',
-      whenToSeek: [
-        'You need practical support',
-        'You\'re facing social or economic challenges',
-        'You need help accessing services',
-        'You want family or group counseling',
-      ],
+     
     ),
+
+    ProfessionalResource(
+    type: 'Psychiatric Nurse / Mental Health Nurse',
+    description:
+        'A Registered Nurse with specialized training in mental health. They provide direct care, monitor patients, administer medication, educate individuals and families, and help manage acute and chronic mental health conditions.',
+  ),
+  ProfessionalResource(
+    type: 'Occupational Therapist',
+    description:
+        'A professional who helps individuals develop, recover, or maintain the skills needed for daily living and working (their "occupations"). They use meaningful activities and routines to support mental health, independence, and social participation.',
+  ),
+ 
+
   ];
 }
