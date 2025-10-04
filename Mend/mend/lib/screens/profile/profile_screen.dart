@@ -47,7 +47,6 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: AppConstants.paddingLarge),
 
-            
                 const SizedBox(height: AppConstants.paddingLarge),
 
                 // Account Section
@@ -65,7 +64,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppConstants.gradientStart, AppConstants.gradientEnd],
+          colors: [AppConstants.primaryColor, AppConstants.secondaryColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -210,7 +209,6 @@ class ProfileScreen extends StatelessWidget {
                           Icons.book,
                           AppConstants.accentColor,
                         ),
-                       
                       ],
                     ),
                   ],
@@ -261,8 +259,6 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
- 
 
   Widget _buildAccountSection(BuildContext context, AuthProvider authProvider) {
     return Card(
@@ -408,8 +404,6 @@ class ProfileScreen extends StatelessWidget {
       );
       activeDates.add(date);
     }
-
-    
 
     return activeDates.length;
   }

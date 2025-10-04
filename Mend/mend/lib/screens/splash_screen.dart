@@ -37,10 +37,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
     _animationController.forward();
@@ -75,14 +72,15 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNextScreen() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final nextScreen = authProvider.status == AuthStatus.authenticated
-        ? const MainNavigationScreen()
-        : const LoginScreen();
+    final nextScreen =
+        authProvider.status == AuthStatus.authenticated
+            ? const MainNavigationScreen()
+            : const LoginScreen();
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => nextScreen),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => nextScreen));
     }
   }
 
@@ -99,9 +97,11 @@ class _SplashScreenState extends State<SplashScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppConstants.gradientStart.withOpacity(0.9),
-              AppConstants.gradientEnd.withOpacity(0.7),
+              AppConstants.authGradientStart, // Slightly dark turquoise-green
+              AppConstants.authGradientMiddle, // Light turquoise-green
+              AppConstants.authGradientEnd, // White turquoise-green
             ],
+            stops: const [0.0, 0.5, 1.0],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

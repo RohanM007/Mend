@@ -35,19 +35,33 @@ class AppConstants {
   static const Color textPrimary = Color(0xFF2C3E50);
   static const Color textSecondary = Color(0xFF7F8C8D);
   static const Color textLight = Color(0xFFBDC3C7);
-  
-  //dark theme text which is more contrast friendly 
-  static const Color darkTextPrimary   = Color(0xFFEFEFEF); // Main body text
+
+  //dark theme text which is more contrast friendly
+  static const Color darkTextPrimary = Color(0xFFEFEFEF); // Main body text
   static const Color darkTextSecondary = Color(0xFFB0B8C4); // Hints, captions
-  static const Color darkTextDisabled  = Color(0xFF6B7280); // Disabled, subtle
-  
+  static const Color darkTextDisabled = Color(0xFF6B7280); // Disabled, subtle
 
   // Additional theme colors
   static const Color lightBlue = Color(0xFFE3F2FD);
   static const Color lightGreen = Color(0xFFE8F5E8);
   static const Color lightPurple = Color(0xFFF3E5F5);
-  static const Color gradientStart = Color(0xFF4A90E2);
-  static const Color gradientEnd = Color(0xFF7B68EE);
+  static const Color gradientStart = Color(
+    0xFF4A90E2,
+  ); // Original blue for navigation
+  static const Color gradientEnd = Color(
+    0xFF7B68EE,
+  ); // Original purple for navigation
+
+  // Turquoise gradient colors for auth screens only
+  static const Color authGradientStart = Color(
+    0xFF2D8B8B,
+  ); // Slightly dark turquoise-green
+  static const Color authGradientMiddle = Color(
+    0xFF4DB6AC,
+  ); // Light turquoise-green
+  static const Color authGradientEnd = Color(
+    0xFFE0F7FA,
+  ); // White turquoise-green
 
   // Spacing
   static const double paddingSmall = 8.0;

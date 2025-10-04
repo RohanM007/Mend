@@ -59,9 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppConstants.gradientStart.withValues(alpha: 0.9),
-              AppConstants.gradientEnd.withValues(alpha: 0.7),
+              AppConstants.authGradientStart, // Slightly dark turquoise-green
+              AppConstants.authGradientMiddle, // Light turquoise-green
+              AppConstants.authGradientEnd, // White turquoise-green
             ],
+            stops: const [0.0, 0.5, 1.0],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
