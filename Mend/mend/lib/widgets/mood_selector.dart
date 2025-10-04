@@ -40,70 +40,90 @@ class MoodSelector extends StatelessWidget {
   }
 
   Widget _buildMoodRow(BuildContext context, List<MoodType> moods) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: moods.map((mood) => _buildMoodButton(context, mood)).toList(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children:
+            moods
+                .map(
+                  (mood) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: _buildMoodButton(context, mood),
+                    ),
+                  ),
+                )
+                .toList(),
+      ),
     );
   }
 
   Widget _buildMoodButton(BuildContext context, MoodType mood) {
-  final moodInfo = MoodInfo.getMoodInfo(mood);
-  final isSelected = selectedMood == mood;
+    final moodInfo = MoodInfo.getMoodInfo(mood);
+    final isSelected = selectedMood == mood;
 
-  return GestureDetector(
-    onTap: () => onMoodSelected(mood),
-    child: AnimatedContainer(
-      duration: AppConstants.animationMedium,
-      // Remove fixed width/height
-      constraints: BoxConstraints.tightFor(
-        width: 72,    // Slightly more room
-        height: 92,   // Extra vertical space for 2-line labels
-      ),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? Color(int.parse(moodInfo.color.replaceFirst('#', '0xFF')))
-                .withOpacity(0.2)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-        border: Border.all(
-          color: isSelected
-              ? Color(int.parse(moodInfo.color.replaceFirst('#', '0xFF')))
-              : Colors.grey.shade300,
-          width: isSelected ? 2 : 1,
+    return GestureDetector(
+      onTap: () => onMoodSelected(mood),
+      child: AnimatedContainer(
+        duration: AppConstants.animationMedium,
+        // Use flexible height, remove fixed width
+        constraints: const BoxConstraints(minHeight: 85, maxHeight: 100),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? Color(
+                    int.parse(moodInfo.color.replaceFirst('#', '0xFF')),
+                  ).withValues(alpha: 0.2)
+                  : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+          border: Border.all(
+            color:
+                isSelected
+                    ? Color(int.parse(moodInfo.color.replaceFirst('#', '0xFF')))
+                    : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              moodInfo.emoji,
-              style: TextStyle(fontSize: isSelected ? 28 : 24),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 2),
-            Flexible(
-              child: Text(
-                moodInfo.label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? Color(int.parse(moodInfo.color.replaceFirst('#', '0xFF')))
-                      : AppConstants.textSecondary,
-                ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                moodInfo.emoji,
+                style: TextStyle(fontSize: isSelected ? 26 : 22),
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Flexible(
+                child: Text(
+                  moodInfo.label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 11,
+                    color:
+                        isSelected
+                            ? Color(
+                              int.parse(
+                                moodInfo.color.replaceFirst('#', '0xFF'),
+                              ),
+                            )
+                            : AppConstants.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class MoodDisplay extends StatelessWidget {
