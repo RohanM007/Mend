@@ -264,7 +264,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         final testMood = MoodEntry(
           id: '',
-          mood: MoodType.happy,
+          moods: [MoodType.happy],
           intensity: 8,
           note: 'Test mood entry',
           date: DateTime.now(),

@@ -15,25 +15,28 @@ enum MoodType {
 
 class MoodEntry {
   final String id;
-  final MoodType mood;
-  final int intensity; // 1-10 scale
+  final List<MoodType> moods; // Multiple moods support
+  final int intensity; // 1-10 scale (overall intensity)
   final String? note;
   final DateTime date;
   final DateTime createdAt;
 
   MoodEntry({
     required this.id,
-    required this.mood,
+    required this.moods,
     required this.intensity,
     this.note,
     required this.date,
     required this.createdAt,
   });
 
+  // Backward compatibility - get primary mood (first in list)
+  MoodType get mood => moods.isNotEmpty ? moods.first : MoodType.neutral;
+
   // Convert to map for Firestore
   Map<String, dynamic> toMap() {
     return {
-      'mood': mood.toString().split('.').last,
+      'moods': moods.map((mood) => mood.toString().split('.').last).toList(),
       'intensity': intensity,
       'note': note,
       'date': Timestamp.fromDate(date),
@@ -43,12 +46,35 @@ class MoodEntry {
 
   // Create from Firestore document
   factory MoodEntry.fromMap(Map<String, dynamic> map, String id) {
-    return MoodEntry(
-      id: id,
-      mood: MoodType.values.firstWhere(
+    // Handle both old single mood format and new multiple moods format
+    List<MoodType> parsedMoods;
+
+    if (map['moods'] != null) {
+      // New format with multiple moods
+      parsedMoods =
+          (map['moods'] as List<dynamic>)
+              .map(
+                (moodString) => MoodType.values.firstWhere(
+                  (e) => e.toString().split('.').last == moodString,
+                  orElse: () => MoodType.neutral,
+                ),
+              )
+              .toList();
+    } else if (map['mood'] != null) {
+      // Old format with single mood - convert to list
+      final singleMood = MoodType.values.firstWhere(
         (e) => e.toString().split('.').last == map['mood'],
         orElse: () => MoodType.neutral,
-      ),
+      );
+      parsedMoods = [singleMood];
+    } else {
+      // Fallback
+      parsedMoods = [MoodType.neutral];
+    }
+
+    return MoodEntry(
+      id: id,
+      moods: parsedMoods,
       intensity: map['intensity'] ?? 5,
       note: map['note'],
       date: (map['date'] as Timestamp).toDate(),
@@ -59,7 +85,7 @@ class MoodEntry {
   // Copy with method for updates
   MoodEntry copyWith({
     String? id,
-    MoodType? mood,
+    List<MoodType>? moods,
     int? intensity,
     String? note,
     DateTime? date,
@@ -67,7 +93,7 @@ class MoodEntry {
   }) {
     return MoodEntry(
       id: id ?? this.id,
-      mood: mood ?? this.mood,
+      moods: moods ?? this.moods,
       intensity: intensity ?? this.intensity,
       note: note ?? this.note,
       date: date ?? this.date,

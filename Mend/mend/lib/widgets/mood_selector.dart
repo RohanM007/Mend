@@ -3,19 +3,24 @@ import '../models/mood_entry.dart';
 import '../constants/app_constants.dart';
 
 class MoodSelector extends StatelessWidget {
-  final MoodType? selectedMood;
-  final Function(MoodType) onMoodSelected;
+  final List<MoodType> selectedMoods;
+  final Function(MoodType) onMoodToggled;
+  final VoidCallback? onClearAll;
 
   const MoodSelector({
     super.key,
-    required this.selectedMood,
-    required this.onMoodSelected,
+    required this.selectedMoods,
+    required this.onMoodToggled,
+    this.onClearAll,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Header with mood count and clear button
+        if (selectedMoods.isNotEmpty) _buildHeader(context),
+
         // Primary moods (most common)
         _buildMoodRow(context, [
           MoodType.veryHappy,
@@ -36,6 +41,35 @@ class MoodSelector extends StatelessWidget {
           MoodType.angry,
         ]),
       ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '${selectedMoods.length} mood${selectedMoods.length == 1 ? '' : 's'} selected',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppConstants.primaryColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (onClearAll != null)
+            TextButton(
+              onPressed: onClearAll,
+              child: Text(
+                'Clear All',
+                style: TextStyle(
+                  color: AppConstants.primaryColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -61,10 +95,10 @@ class MoodSelector extends StatelessWidget {
 
   Widget _buildMoodButton(BuildContext context, MoodType mood) {
     final moodInfo = MoodInfo.getMoodInfo(mood);
-    final isSelected = selectedMood == mood;
+    final isSelected = selectedMoods.contains(mood);
 
     return GestureDetector(
-      onTap: () => onMoodSelected(mood),
+      onTap: () => onMoodToggled(mood),
       child: AnimatedContainer(
         duration: AppConstants.animationMedium,
         // Use flexible height, remove fixed width
@@ -140,8 +174,6 @@ class MoodDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final moodInfo = MoodInfo.getMoodInfo(entry.mood);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingMedium),
@@ -150,22 +182,37 @@ class MoodDisplay extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(moodInfo.emoji, style: const TextStyle(fontSize: 32)),
+                // Display multiple mood emojis
+                Wrap(
+                  spacing: 4,
+                  children:
+                      entry.moods.take(3).map((mood) {
+                        final moodInfo = MoodInfo.getMoodInfo(mood);
+                        return Text(
+                          moodInfo.emoji,
+                          style: const TextStyle(fontSize: 28),
+                        );
+                      }).toList(),
+                ),
+                if (entry.moods.length > 3)
+                  Text(
+                    ' +${entry.moods.length - 3}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppConstants.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 const SizedBox(width: AppConstants.paddingMedium),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        moodInfo.label,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          color: Color(
-                            int.parse(moodInfo.color.replaceFirst('#', '0xFF')),
-                          ),
-                          fontWeight: FontWeight.w600,
-                        ),
+                        _getMoodLabelsText(),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         _formatDate(entry.date),
@@ -183,9 +230,7 @@ class MoodDisplay extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Color(
-                        int.parse(moodInfo.color.replaceFirst('#', '0xFF')),
-                      ).withValues(alpha: 0.2),
+                      color: AppConstants.primaryColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(
                         AppConstants.radiusSmall,
                       ),
@@ -194,9 +239,7 @@ class MoodDisplay extends StatelessWidget {
                       '${entry.intensity}/10',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Color(
-                          int.parse(moodInfo.color.replaceFirst('#', '0xFF')),
-                        ),
+                        color: AppConstants.primaryColor,
                       ),
                     ),
                   ),
@@ -222,6 +265,23 @@ class MoodDisplay extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getMoodLabelsText() {
+    if (entry.moods.isEmpty) return 'No mood';
+    if (entry.moods.length == 1) {
+      return MoodInfo.getMoodInfo(entry.moods.first).label;
+    }
+
+    // For multiple moods, show first two and count
+    final labels = entry.moods
+        .take(2)
+        .map((mood) => MoodInfo.getMoodInfo(mood).label);
+    if (entry.moods.length == 2) {
+      return labels.join(' & ');
+    } else {
+      return '${labels.join(', ')} & ${entry.moods.length - 2} more';
+    }
   }
 
   String _formatDate(DateTime date) {

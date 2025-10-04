@@ -142,12 +142,19 @@ class MoodProvider with ChangeNotifier {
     if (_moodEntries.isEmpty) return {};
 
     final moodCounts = <MoodType, int>{};
+    int totalMoodInstances = 0;
+
+    // Count all mood instances (multiple moods per entry)
     for (final entry in _moodEntries) {
-      moodCounts[entry.mood] = (moodCounts[entry.mood] ?? 0) + 1;
+      for (final mood in entry.moods) {
+        moodCounts[mood] = (moodCounts[mood] ?? 0) + 1;
+        totalMoodInstances++;
+      }
     }
 
-    final total = _moodEntries.length;
-    return moodCounts.map((mood, count) => MapEntry(mood, count / total));
+    return moodCounts.map(
+      (mood, count) => MapEntry(mood, count / totalMoodInstances),
+    );
   }
 
   double getAverageIntensity() {
@@ -161,7 +168,9 @@ class MoodProvider with ChangeNotifier {
   }
 
   List<MoodEntry> getMoodsByType(MoodType moodType) {
-    return _moodEntries.where((entry) => entry.mood == moodType).toList();
+    return _moodEntries
+        .where((entry) => entry.moods.contains(moodType))
+        .toList();
   }
 
   // Get mood trends (improving, declining, stable)

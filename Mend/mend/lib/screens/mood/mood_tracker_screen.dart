@@ -19,7 +19,7 @@ class MoodTrackerScreen extends StatefulWidget {
 class _MoodTrackerScreenState extends State<MoodTrackerScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  MoodType? _selectedMood;
+  List<MoodType> _selectedMoods = [];
   int _intensity = 5;
   final _noteController = TextEditingController();
   bool _isSaving = false; // Add loading state to prevent multiple saves
@@ -38,10 +38,10 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
   }
 
   Future<void> _saveMoodEntry() async {
-    if (_selectedMood == null) {
+    if (_selectedMoods.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a mood'),
+          content: Text('Please select at least one mood'),
           backgroundColor: AppConstants.warningColor,
         ),
       );
@@ -59,7 +59,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
 
     final entry = MoodEntry(
       id: '',
-      mood: _selectedMood!,
+      moods: _selectedMoods,
       intensity: _intensity,
       note:
           _noteController.text.trim().isEmpty
@@ -74,7 +74,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
 
       if (mounted) {
         setState(() {
-          _selectedMood = null;
+          _selectedMoods.clear();
           _intensity = 5;
           _noteController.clear();
           _isSaving = false;
@@ -206,10 +206,19 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
                 const SizedBox(height: AppConstants.paddingMedium),
 
                 MoodSelector(
-                  selectedMood: _selectedMood,
-                  onMoodSelected: (mood) {
+                  selectedMoods: _selectedMoods,
+                  onMoodToggled: (mood) {
                     setState(() {
-                      _selectedMood = mood;
+                      if (_selectedMoods.contains(mood)) {
+                        _selectedMoods.remove(mood);
+                      } else {
+                        _selectedMoods.add(mood);
+                      }
+                    });
+                  },
+                  onClearAll: () {
+                    setState(() {
+                      _selectedMoods.clear();
                     });
                   },
                 ),
@@ -217,7 +226,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
                 const SizedBox(height: AppConstants.paddingLarge),
 
                 // Intensity slider
-                if (_selectedMood != null) ...[
+                if (_selectedMoods.isNotEmpty) ...[
                   Text(
                     'Intensity Level: $_intensity/10',
                     style: Theme.of(context).textTheme.titleMedium,
