@@ -20,7 +20,7 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _tagsController = TextEditingController();
-  
+
   String? _selectedPrompt;
   bool _isLoading = false;
   bool _hasUnsavedChanges = false;
@@ -95,9 +95,6 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Prompt display
-                if (_selectedPrompt != null) _buildPromptCard(),
-
                 // Title field
                 CustomTextField(
                   controller: _titleController,
@@ -169,7 +166,8 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
                 // Cancel button
                 CustomButton(
                   text: 'Cancel',
-                  onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                  onPressed:
+                      _isLoading ? null : () => Navigator.of(context).pop(),
                   isOutlined: true,
                 ),
               ],
@@ -180,68 +178,25 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
     );
   }
 
-  Widget _buildPromptCard() {
-    return Card(
-      color: AppConstants.primaryColor.withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.lightbulb,
-                  color: AppConstants.primaryColor,
-                  size: 20,
-                ),
-                const SizedBox(width: AppConstants.paddingSmall),
-                Text(
-                  'Writing Prompt',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppConstants.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () {
-                    setState(() {
-                      _selectedPrompt = null;
-                    });
-                  },
-                  color: AppConstants.primaryColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppConstants.paddingSmall),
-            Text(
-              _selectedPrompt!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildWordCount() {
-    final wordCount = _contentController.text.trim().isEmpty
-        ? 0
-        : _contentController.text.trim().split(RegExp(r'\s+')).length;
+    final wordCount =
+        _contentController.text.trim().isEmpty
+            ? 0
+            : _contentController.text.trim().split(RegExp(r'\s+')).length;
 
     return Row(
       children: [
-        const Icon(Icons.text_fields, size: 16, color: AppConstants.textSecondary),
+        const Icon(
+          Icons.text_fields,
+          size: 16,
+          color: AppConstants.textSecondary,
+        ),
         const SizedBox(width: AppConstants.paddingSmall),
         Text(
           '$wordCount words',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppConstants.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppConstants.textSecondary),
         ),
       ],
     );
@@ -256,70 +211,83 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose a Writing Prompt'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 400,
-          child: ListView.builder(
-            itemCount: prompts.length,
-            itemBuilder: (context, index) {
-              final prompt = prompts[index];
-              return ListTile(
-                title: Text(
-                  prompt,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                onTap: () {
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Choose a Writing Prompt'),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 400,
+              child: ListView.builder(
+                itemCount: prompts.length,
+                itemBuilder: (context, index) {
+                  final prompt = prompts[index];
+                  return ListTile(
+                    title: Text(
+                      prompt,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _selectedPrompt = prompt;
+                        // Auto-populate the title field with the selected prompt
+                        _titleController.text = prompt;
+                        _hasUnsavedChanges = true;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final randomPrompt = JournalPrompts.getRandomPrompt();
                   setState(() {
-                    _selectedPrompt = prompt;
+                    _selectedPrompt = randomPrompt;
+                    // Auto-populate the title field with the random prompt
+                    _titleController.text = randomPrompt;
+                    _hasUnsavedChanges = true;
                   });
                   Navigator.of(context).pop();
                 },
-              );
-            },
+                child: const Text('Random'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _selectedPrompt = JournalPrompts.getRandomPrompt();
-              });
-              Navigator.of(context).pop();
-            },
-            child: const Text('Random'),
-          ),
-        ],
-      ),
     );
   }
 
   void _showUnsavedChangesDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Unsaved Changes'),
-        content: const Text('You have unsaved changes. Do you want to discard them?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Unsaved Changes'),
+            content: const Text(
+              'You have unsaved changes. Do you want to discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Close screen
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppConstants.errorColor,
+                ),
+                child: const Text('Discard'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Close screen
-            },
-            style: TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
-            child: const Text('Discard'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -332,11 +300,12 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
 
     try {
       final now = DateTime.now();
-      final tags = _tagsController.text
-          .split(',')
-          .map((tag) => tag.trim())
-          .where((tag) => tag.isNotEmpty)
-          .toList();
+      final tags =
+          _tagsController.text
+              .split(',')
+              .map((tag) => tag.trim())
+              .where((tag) => tag.isNotEmpty)
+              .toList();
 
       final entry = JournalEntry(
         id: widget.entry?.id ?? '',
@@ -348,8 +317,10 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
         tags: tags,
       );
 
-      await Provider.of<JournalProvider>(context, listen: false)
-          .saveJournalEntry(entry);
+      await Provider.of<JournalProvider>(
+        context,
+        listen: false,
+      ).saveJournalEntry(entry);
 
       if (mounted) {
         setState(() {
@@ -358,9 +329,11 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.entry == null 
-                ? 'Entry saved successfully!' 
-                : 'Entry updated successfully!'),
+            content: Text(
+              widget.entry == null
+                  ? 'Entry saved successfully!'
+                  : 'Entry updated successfully!',
+            ),
             backgroundColor: AppConstants.successColor,
           ),
         );
