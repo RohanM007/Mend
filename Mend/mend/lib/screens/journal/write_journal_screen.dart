@@ -84,6 +84,7 @@ class _WriteJournalScreenState extends State<WriteJournalScreen> {
               ),
             IconButton(
               icon: const Icon(Icons.save),
+              tooltip: 'Save journal entry',
               onPressed: _isLoading ? null : _saveEntry,
             ),
           ],

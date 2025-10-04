@@ -34,13 +34,17 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search mental health topics',
             onPressed: _showSearchDialog,
           ),
           IconButton(
             icon: const Icon(Icons.emergency, color: AppConstants.errorColor),
+            tooltip: 'Crisis resources & emergency help',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CrisisResourcesScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const CrisisResourcesScreen(),
+                ),
               );
             },
           ),
@@ -50,14 +54,12 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
         children: [
           // Crisis resources banner
           _buildCrisisBanner(),
-          
+
           // Category filter
           _buildCategoryFilter(),
-          
+
           // Content list
-          Expanded(
-            child: _buildContentList(),
-          ),
+          Expanded(child: _buildContentList()),
         ],
       ),
     );
@@ -80,22 +82,24 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
     final categories = [
       'All',
       'Anxiety',
-      'Depression', 
+      'Depression',
       'Bipolar',
       'PTSD',
       'General Wellness',
     ];
-    
+
     return Container(
       height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingMedium,
+      ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
           final isSelected = _selectedCategory == category;
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: AppConstants.paddingSmall),
             child: FilterChip(
@@ -110,11 +114,17 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
               selectedColor: AppConstants.primaryColor.withValues(alpha: 0.2),
               checkmarkColor: AppConstants.primaryColor,
               labelStyle: TextStyle(
-                color: isSelected ? AppConstants.primaryColor : AppConstants.textSecondary,
+                color:
+                    isSelected
+                        ? AppConstants.primaryColor
+                        : AppConstants.textSecondary,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               side: BorderSide(
-                color: isSelected ? AppConstants.primaryColor : Colors.grey.shade300,
+                color:
+                    isSelected
+                        ? AppConstants.primaryColor
+                        : Colors.grey.shade300,
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -161,7 +171,9 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
             ),
             const SizedBox(height: AppConstants.paddingLarge),
             Text(
-              _searchQuery.isNotEmpty ? 'No results found' : 'No information available',
+              _searchQuery.isNotEmpty
+                  ? 'No results found'
+                  : 'No information available',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: AppConstants.textSecondary,
               ),
@@ -194,7 +206,7 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
         'PTSD': MentalHealthCategory.ptsd,
         'General Wellness': MentalHealthCategory.generalWellness,
       };
-      
+
       final category = categoryMap[_selectedCategory];
       if (category != null) {
         info = info.where((item) => item.category == category).toList();
@@ -204,13 +216,18 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      info = info.where((item) {
-        return item.title.toLowerCase().contains(query) ||
-               item.description.toLowerCase().contains(query) ||
-               item.content.toLowerCase().contains(query) ||
-               item.symptoms.any((symptom) => symptom.toLowerCase().contains(query)) ||
-               item.treatments.any((treatment) => treatment.toLowerCase().contains(query));
-      }).toList();
+      info =
+          info.where((item) {
+            return item.title.toLowerCase().contains(query) ||
+                item.description.toLowerCase().contains(query) ||
+                item.content.toLowerCase().contains(query) ||
+                item.symptoms.any(
+                  (symptom) => symptom.toLowerCase().contains(query),
+                ) ||
+                item.treatments.any(
+                  (treatment) => treatment.toLowerCase().contains(query),
+                );
+          }).toList();
     }
 
     return info;
@@ -219,46 +236,45 @@ class _MentalHealthInfoScreenState extends State<MentalHealthInfoScreen> {
   void _showSearchDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Search Mental Health Info'),
-        content: TextField(
-          controller: _searchController,
-          decoration: const InputDecoration(
-            hintText: 'Search symptoms, conditions, treatments...',
-            prefixIcon: Icon(Icons.search),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Search Mental Health Info'),
+            content: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                hintText: 'Search symptoms, conditions, treatments...',
+                prefixIcon: Icon(Icons.search),
+              ),
+              autofocus: true,
+              onSubmitted: (value) {
+                setState(() {
+                  _searchQuery = value.trim();
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _searchQuery = _searchController.text.trim();
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Search'),
+              ),
+            ],
           ),
-          autofocus: true,
-          onSubmitted: (value) {
-            setState(() {
-              _searchQuery = value.trim();
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _searchQuery = _searchController.text.trim();
-              });
-              Navigator.of(context).pop();
-            },
-            child: const Text('Search'),
-          ),
-        ],
-      ),
     );
   }
 
   void _navigateToDetail(MentalHealthInfo info) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MentalHealthDetailScreen(info: info),
-      ),
+      MaterialPageRoute(builder: (_) => MentalHealthDetailScreen(info: info)),
     );
   }
 }

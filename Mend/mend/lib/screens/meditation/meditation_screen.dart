@@ -23,18 +23,6 @@ class _MeditationScreenState extends State<MeditationScreen> {
       appBar: AppBar(
         title: const Text('Meditation'),
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const MeditationHistoryScreen(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [

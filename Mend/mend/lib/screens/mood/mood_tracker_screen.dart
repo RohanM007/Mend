@@ -119,6 +119,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
+            tooltip: 'View mood history',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const MoodHistoryScreen()),

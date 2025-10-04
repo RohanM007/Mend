@@ -21,6 +21,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
+            tooltip: 'App settings',
             onPressed: () {
               Navigator.of(
                 context,

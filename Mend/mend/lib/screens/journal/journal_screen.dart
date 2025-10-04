@@ -34,6 +34,7 @@ class _JournalScreenState extends State<JournalScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: 'Search journal entries',
             onPressed: _showSearchDialog,
           ),
         ],

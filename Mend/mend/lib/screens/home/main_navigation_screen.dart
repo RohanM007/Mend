@@ -6,6 +6,7 @@ import '../meditation/meditation_screen.dart';
 import '../mental_health/mental_health_info_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/settings_screen.dart';
+import '../meditation/meditation_history_screen.dart';
 import '../../providers/auth_provider.dart';
 import '../../constants/app_constants.dart';
 import 'home_screen.dart';
@@ -150,12 +151,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   Icons.settings,
                   () => _navigateToScreen(context, const SettingsScreen()),
                 ),
+                _buildDrawerItem(
+                  context,
+                  'Meditation History',
+                  Icons.history,
+                  () => _navigateToScreen(
+                    context,
+                    const MeditationHistoryScreen(),
+                  ),
+                ),
                 const Divider(),
                 _buildDrawerItem(
                   context,
                   'About MEND',
                   Icons.info,
                   () => _showAboutDialog(context),
+                ),
+                const Divider(),
+                _buildDrawerItem(
+                  context,
+                  'Sign Out',
+                  Icons.logout,
+                  () => _showSignOutDialog(context),
+                  isDestructive: true,
                 ),
               ],
             ),
@@ -169,11 +187,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     BuildContext context,
     String title,
     IconData icon,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
     return ListTile(
-      leading: Icon(icon, color: AppConstants.primaryColor),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      leading: Icon(
+        icon,
+        color:
+            isDestructive ? AppConstants.errorColor : AppConstants.primaryColor,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: isDestructive ? AppConstants.errorColor : null,
+        ),
+      ),
       onTap: () {
         Navigator.pop(context); // Close drawer
         onTap();
@@ -183,6 +212,37 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _navigateToScreen(BuildContext context, Widget screen) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  void _showSignOutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Sign Out'),
+            content: const Text('Are you sure you want to sign out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  final authProvider = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
+                  authProvider.signOut();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppConstants.errorColor,
+                ),
+                child: const Text('Sign Out'),
+              ),
+            ],
+          ),
+    );
   }
 
   void _showAboutDialog(BuildContext context) {
