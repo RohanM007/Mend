@@ -159,25 +159,6 @@ class HomeScreen extends StatelessWidget {
 
                   // Quick Actions
                   _buildQuickActions(context),
-
-                  // 👇 Disclaimer - Added here
-                  const SizedBox(height: AppConstants.paddingLarge),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppConstants.paddingMedium,
-                    ),
-                    child: Text(
-                      'Disclaimer: The content provided in this app is for informational and educational purposes only. '
-                      'It is not intended as, and must not be construed as, professional medical, psychological, or therapeutic advice. '
-                      'Always seek the guidance of a qualified mental health professional for any questions or concerns regarding your mental well-being. ',
-
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.justify,
-                    ),
-                  ),
                 ],
               ),
             ),

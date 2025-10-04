@@ -160,6 +160,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   Icons.info,
                   () => _showAboutDialog(context),
                 ),
+                _buildDrawerItem(
+                  context,
+                  'Disclaimer',
+                  Icons.warning_amber,
+                  () => _showDisclaimerDialog(context),
+                ),
                 const Divider(),
                 _buildDrawerItem(
                   context,
@@ -265,6 +271,63 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           'MEND is your companion for mental wellness, providing tools for mood tracking, journaling, meditation, and mental health resources.',
         ),
       ],
+    );
+  }
+
+  void _showDisclaimerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.warning_amber, color: AppConstants.warningColor),
+                const SizedBox(width: 8),
+                const Text('Important Disclaimer'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'The content provided in this app is for informational and educational purposes only.',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'It is not intended as, and must not be construed as, professional medical, psychological, or therapeutic advice.',
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Always seek the guidance of a qualified mental health professional for any questions or concerns regarding your mental well-being.',
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppConstants.warningColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppConstants.warningColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: const Text(
+                      'If you are experiencing a mental health emergency, please contact emergency services or a crisis hotline immediately.',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('I Understand'),
+              ),
+            ],
+          ),
     );
   }
 }
