@@ -21,13 +21,31 @@ class HomeScreen extends StatelessWidget {
             expandedHeight: 120,
             floating: false,
             pinned: true,
-            automaticallyImplyLeading: false,
-            // Remove 'leading' —adding the logo inside flexibleSpace
-            actions: const [
-              // Optional: Keep a static light mode icon or remove entirely
+            automaticallyImplyLeading: true, // Enable drawer icon
+            iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              // Profile avatar as alternative drawer access
               Padding(
-                padding: EdgeInsets.only(right: 16.0),
-                child: Icon(Icons.light_mode, color: Colors.white),
+                padding: const EdgeInsets.only(right: 16.0),
+                child: GestureDetector(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return CircleAvatar(
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        child: Text(
+                          (authProvider.user?.displayName?.isNotEmpty == true)
+                              ? authProvider.user!.displayName![0].toUpperCase()
+                              : 'M',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -305,7 +323,7 @@ class HomeScreen extends StatelessWidget {
               'Learn',
               Icons.psychology,
               AppConstants.primaryColor,
-              () => onNavigateToTab?.call(4),
+              () => Scaffold.of(context).openDrawer(),
             ),
           ],
         ),
