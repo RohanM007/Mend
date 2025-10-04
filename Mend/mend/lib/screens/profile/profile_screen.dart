@@ -7,7 +7,6 @@ import '../../providers/journal_provider.dart';
 import '../../providers/meditation_provider.dart';
 import '../../constants/app_constants.dart';
 import 'settings_screen.dart';
-import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -286,15 +285,6 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
-            if (authProvider.user != null)
-              _buildActionTile(
-                context,
-                'Sign Out',
-                'Sign out of your account',
-                Icons.logout,
-                () => _showSignOutDialog(context, authProvider),
-                isDestructive: true,
-              ),
           ],
         ),
       ),
@@ -344,43 +334,6 @@ class ProfileScreen extends StatelessWidget {
       'Dec',
     ];
     return '${months[date.month - 1]} ${date.year}';
-  }
-
-  void _showSignOutDialog(BuildContext context, AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Sign Out'),
-            content: const Text('Are you sure you want to sign out?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await authProvider.signOut();
-
-                  // Navigate to login screen and clear all previous routes
-                  if (context.mounted) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppConstants.errorColor,
-                ),
-                child: const Text('Sign Out'),
-              ),
-            ],
-          ),
-    );
   }
 
   int _calculateDaysActive(

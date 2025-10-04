@@ -6,7 +6,8 @@ import '../meditation/meditation_screen.dart';
 import '../mental_health/mental_health_info_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/settings_screen.dart';
-import '../meditation/meditation_history_screen.dart';
+import '../auth/login_screen.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../constants/app_constants.dart';
 import 'home_screen.dart';
@@ -151,15 +152,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   Icons.settings,
                   () => _navigateToScreen(context, const SettingsScreen()),
                 ),
-                _buildDrawerItem(
-                  context,
-                  'Meditation History',
-                  Icons.history,
-                  () => _navigateToScreen(
-                    context,
-                    const MeditationHistoryScreen(),
-                  ),
-                ),
+
                 const Divider(),
                 _buildDrawerItem(
                   context,
@@ -227,13 +220,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.of(context).pop();
                   final authProvider = Provider.of<AuthProvider>(
                     context,
                     listen: false,
                   );
-                  authProvider.signOut();
+                  await authProvider.signOut();
+
+                  // Navigate to login screen
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  }
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: AppConstants.errorColor,

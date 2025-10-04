@@ -5,7 +5,6 @@ import '../../data/media_content_data.dart';
 import '../../constants/app_constants.dart';
 import '../../widgets/media_content_card.dart';
 import '../../widgets/meditation_category_chip.dart';
-import 'meditation_history_screen.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
